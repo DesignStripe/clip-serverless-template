@@ -5,6 +5,7 @@ from run import encode_image, encode_text , get_similarity
 import requests
 from io import BytesIO
 import base64
+import json
 
 # do the warmup step globally, to have a reuseable model instance
 model = load_model()
@@ -14,15 +15,21 @@ app = Sanic("my_app")
 
 @app.route('/healthcheck', methods=["GET"])
 def healthcheck(request):
+    print('Calling health check')
     return response.json({"state": "healthy"})
 
 @app.route('/', methods=["POST"]) # Do not edit - POST requests to "/" are a required interface
 def inference(request):
+    print('Calling inference')
     try:
         model_parameters = json.loads(request.json)
     except:
         model_parameters = request.json
-        
+    
+    print('Model Parameters')
+    model_params_json = json.dumps(model_parameters)
+    print(model_params_json)
+    
     image_byte_string = model_parameters.get('imageByteString', None)
     image_url = model_parameters.get('imageURL', None)
     text = model_parameters.get('text', None)
@@ -31,10 +38,11 @@ def inference(request):
     if image_byte_string == None and image_url == None:
         return json({'message': "No image provided"})
 
+    print('Has Text Images')
     if text == None and texts ==  None:
         return json({'message': "No text provided"})
-
     
+    print('Has Text Inputs')
     image_bytes = None
 
     if image_url != None:
